@@ -1,0 +1,74 @@
+# Configuration file for the web-keepaliver-producer
+
+# Probe interval in seconds
+probe_interval_sec: 5
+
+# Define the list of kakfa broker. Default broker is localhost:9092
+kafka:
+  bootstrap_servers:
+    - "kafka1.mottainai.local:9092"
+  #compression_type: "gzip"
+  # The Brokers support idempotent producing, that will prevent the Producer
+  # from creating duplicates on retries.
+  enable_idempotence: true
+
+# Define the limit of simultaneous connections for single scout. Default is 5
+limit_sim_conn: 3
+
+websites:
+  - name: "google.it"
+    topic: "web-keepaliver"
+    # Accept or not self signed certificates.
+    verify_ssl: true
+    # Define the max connection timeout in seconds.
+    request_timeout_sec: 120
+
+    # Define basic authentication
+    # basic_auth:
+    #   user: "xxx"
+    #   pass: "yyy"
+
+    resources:
+      - name: "google-homepage"
+        url: "https://www.google.it"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        # expected_body_pattern: ''
+
+  - name: "lxd-compose"
+    topic: "web-keepaliver"
+    # Accept or not self signed certificates.
+    verify_ssl: true
+    # Define the max connection timeout in seconds.
+    request_timeout_sec: 120
+
+    # Define basic authentication
+    # basic_auth:
+    #   user: "xxx"
+    #   pass: "yyy"
+
+    resources:
+      - name: "homepage"
+        url: "https://mottainaici.github.io/lxd-compose-docs/"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        expected_body_pattern: '.*DANIELE.*'
+
+      - name: "documentation"
+        url: "https://mottainaici.github.io/lxd-compose-docs/docs"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        expected_body_pattern: 'lxd-compose'
+

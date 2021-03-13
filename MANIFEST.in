@@ -1,0 +1,6 @@
+include README
+prune *.log
+prune *.log.*
+include etc/*.yml
+exclude etc/__pycache__/*.pyc
+graft   systemd

@@ -1,0 +1,4 @@
+*.swp
+.idea/
+.coverage
+**/__pycache__/

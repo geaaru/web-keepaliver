@@ -1,0 +1,14 @@
+# Configuration file for the web-keepaliver-consumer
+
+# milliseconds spent waiting if data is not available in
+# the buffer. If 0, returns immediately.
+timeout_waiting_data: 10000
+
+# Subscriber regex
+subscription_regex: "^web-keepaliver.*"
+
+# Define the list of kakfa broker. Default broker is localhost:9092
+kafka:
+  bootstrap_servers:
+    - "kafka1.mottainai.local:9092"
+  group_id: "web-keepaliver-consumers"
