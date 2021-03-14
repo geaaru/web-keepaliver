@@ -159,18 +159,17 @@ class KeepaliverKafkaProducer(AppSeed, KafkaClientConfigurator):
 
             # Create futures of the probe results and send
             # messages to kafka brokers.
-            msgs = []
+            probes = []
             for future in futures:
                 probe_result = future.result()
-                msgs.append(asyncio.ensure_future(
-                    self._send2topic(probe_result.pack(), site.topic)
-                ))
+                probes.append(probe_result.pack())
 
-            await asyncio.ensure_future(
-                asyncio.gather(
-                    *msgs, return_exceptions=False
-                )
-            )
+            msg = {
+                'site': site.get_name(),
+                'probes': probes,
+            }
+
+            await self._send2topic(msg, site.topic)
 
         except Exception as exc:  # pylint: disable=broad-except
             self.logger.error(
