@@ -3,4 +3,5 @@ prune *.log
 prune *.log.*
 include etc/*.yml
 exclude etc/__pycache__/*.pyc
+exclude dbrm
 graft   systemd
