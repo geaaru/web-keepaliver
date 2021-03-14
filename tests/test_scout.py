@@ -187,6 +187,14 @@ class TestHttpClient(unittest.TestCase):
             'url': 'http://127.0.0.1:10000/',
         }
 
+    @staticmethod
+    def get_site_data():
+        return HttpWebSite({
+            'name': 'site1',
+            # Not needed in the test
+            'resources': [],
+        })
+
     def _run_request(self, resource, body):
         scout = HttpScout(verify_ssl=False)
         loop = asyncio.new_event_loop()
@@ -214,7 +222,7 @@ class TestHttpClient(unittest.TestCase):
         try:
             loop.run_until_complete(scout.create_session())
             future = asyncio.ensure_future(
-                scout.probe_resource(resource),
+                scout.probe_resource(self.get_site_data(), resource),
                 loop=loop
             )
             loop.run_until_complete(future)

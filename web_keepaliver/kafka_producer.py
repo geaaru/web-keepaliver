@@ -146,7 +146,7 @@ class KeepaliverKafkaProducer(AppSeed, KafkaClientConfigurator):
             # Create the list of future for every resource
             for resource in site.get_resources():
                 future = asyncio.ensure_future(
-                    scout.probe_resource(resource)
+                    scout.probe_resource(site, resource)
                 )
                 futures.append(future)
 

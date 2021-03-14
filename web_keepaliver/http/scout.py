@@ -45,40 +45,6 @@ class HttpResource:
         return self.method
 
 
-class HttpProbeResult:
-
-    def __init__(self, resource: HttpResource,
-                 resp_http_code: int,
-                 result: bool,
-                 error_desc: str = None,
-                 resp_time_ms: int = -1):
-        self.resource = resource
-        self.resp_http_code = resp_http_code
-        self.result = result
-        self.error_desc = error_desc
-        self.resp_time_ms = resp_time_ms
-
-    def get_resp_http_code(self):
-        return self.resp_http_code
-
-    def pack(self):
-        ans = {
-            'name': self.resource.get_name(),
-            'url': self.resource.url,
-            'method': self.resource.get_method(),
-            'resp_http_code': self.resp_http_code,
-            'resp_time_ms': self.resp_time_ms,
-            'expected_http_code': self.resource.expected_http_code,
-            'result': self.result,
-
-        }
-
-        if self.error_desc is not None and len(self.error_desc) > 0:
-            ans['error_desc'] = self.error_desc
-
-        return ans
-
-
 class HttpWebSite:
     """
         Http web site to check.
@@ -128,6 +94,43 @@ class HttpWebSite:
 
     def has_basic_auth(self):
         return self.has_auth
+
+
+class HttpProbeResult:
+
+    def __init__(self, resource: HttpResource,
+                 resp_http_code: int,
+                 result: bool,
+                 error_desc: str = None,
+                 resp_time_ms: int = -1,
+                 site: HttpWebSite = None):
+        self.resource = resource
+        self.site = site
+        self.resp_http_code = resp_http_code
+        self.result = result
+        self.error_desc = error_desc
+        self.resp_time_ms = resp_time_ms
+
+    def get_resp_http_code(self):
+        return self.resp_http_code
+
+    def pack(self):
+        ans = {
+            'site': self.site.get_name() if self.site is not None else "",
+            'resource': self.resource.get_name(),
+            'url': self.resource.url,
+            'method': self.resource.get_method(),
+            'resp_http_code': self.resp_http_code,
+            'resp_time_ms': self.resp_time_ms,
+            'expected_http_code': self.resource.expected_http_code,
+            'result': self.result,
+
+        }
+
+        if self.error_desc is not None and len(self.error_desc) > 0:
+            ans['error_desc'] = self.error_desc
+
+        return ans
 
 
 class HttpScout:
@@ -206,10 +209,13 @@ class HttpScout:
 
         return resp, resp_body
 
-    async def probe_resource(self, resource: HttpResource) -> HttpProbeResult:
+    async def probe_resource(self,
+                             site: HttpWebSite,
+                             resource: HttpResource) -> HttpProbeResult:
         """
         Proble HTTP request and validate response respect the expected values.
 
+        :param site: HttpWebSite that contains the resource to check.
         :param resource: HttpResource to check.
         :return: the result of the probe as HttpProbeResult
         """
@@ -257,6 +263,7 @@ class HttpScout:
             error_desc = '%s' % exc
 
         ans = HttpProbeResult(resource, resp_http_code, result,
+                              site=site,
                               error_desc=error_desc,
                               resp_time_ms=ms)
 
