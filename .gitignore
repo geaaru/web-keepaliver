@@ -2,3 +2,5 @@
 .idea/
 .coverage
 **/__pycache__/
+dbrm/.dbm_history
+dbrm/dbrm.log
