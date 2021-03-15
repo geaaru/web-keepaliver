@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS sites_probes (
 
 CREATE TABLE IF NOT EXISTS site_status (
   site               VARCHAR(200) NOT NULL,
-  last_update        DATE NOT NULL,
+  last_update        TIMESTAMP NOT NULL,
   status             BOOLEAN NOT NULL,
   n_resources        NUMERIC(5) NOT NULL,
   err_counter        NUMERIC(10) NOT NULL,
