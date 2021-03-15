@@ -9,12 +9,106 @@ It supplies two different programs that are configurable through YAML files:
    it sends messages to Kafka Broker (in JSON format) to configured topics.
 
   * **web-keepaliver-consumer**: the service fetches the messages from Kafka
-    Brokers, parses the messages, and stores in a TimescaleDB. The timescaleDB
+    Brokers, parses the messages, and stores in TimescaleDB. The TimescaleDB
     is an extension of the PostgreSQL database.
+
+Both tools using the async development pattern.
 
 The stored data are read and displayed from a Grafana dashboard:
 
 ![image](docs/grafana_dashboard.png)
+
+## Configuration files
+
+Inside the configuration file of the `web-keepaliver-producer` tool it's
+possible to define the list of the sites to monitoring and for every site
+one or more resources to check.
+
+As visible in the [example](etc/keepaliver-producer.yaml) the `websites`
+section could be defined in this way:
+
+```yaml
+websites:
+  - name: "google.it"
+    topic: "web-keepaliver"
+    # Accept or not self signed certificates.
+    verify_ssl: true
+    # Define the max connection timeout in seconds.
+    request_timeout_sec: 120
+
+    # Define basic authentication
+    # basic_auth:
+    #   user: "xxx"
+    #   pass: "yyy"
+
+    resources:
+      - name: "google-homepage"
+        url: "https://www.google.it"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        # expected_body_pattern: ''
+
+  - name: "lxd-compose"
+    topic: "web-keepaliver"
+    # Accept or not self signed certificates.
+    verify_ssl: true
+    # Define the max connection timeout in seconds.
+    request_timeout_sec: 120
+
+    # Define basic authentication
+    # basic_auth:
+    #   user: "xxx"
+    #   pass: "yyy"
+
+    resources:
+      - name: "homepage"
+        url: "https://mottainaici.github.io/lxd-compose-docs/"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        expected_body_pattern: '.*DANIELE.*'
+
+      - name: "documentation"
+        url: "https://mottainaici.github.io/lxd-compose-docs/docs"
+        method: GET
+        # Define optional headers map
+        # headers:
+        #   Content-Type: "application/json"
+        expected_http_code: 200
+        # Optional response check through a regex.
+        expected_body_pattern: 'lxd-compose'
+```
+
+Where a `site` could be defined with:
+
+ * *name*: user-friendly name of the site/node to monitoring
+ * *topic*: the name of the Kakfa Broker topic to use
+ * *verify_ssl*: disable/enable SSL certificate check. Set to `false` for
+   self signed certificates normally.
+ * `request_timeout_sec`: define the max connection timeout in seconds.
+ * `basic_auth`: this section permit to define a Basic Authentication
+   for probe the target resources
+ * `resources`: it contains the list of the URL to probe.
+
+Every `resource` could be defined with:
+
+  * *name*: user-friendly name of the URI
+  * *url*: the URL to call
+  * *method*: The HTTP method to use. Default is GET.
+  * *headers*: (optional) could be define the map of headers to sent
+  * *expected_http_code*: the expected HTTP Response Code.
+    The default value is 200.
+    If the code is not equal then the message sent over Kafka
+    will contains the failure status.
+  * *expected_body_pattern*: (optional) used to check
+
 
 ## Developers stuff
 
