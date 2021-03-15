@@ -1,0 +1,14 @@
+language: python
+dist: focal
+python:
+  - "3.7"
+  - "3.8"
+before_install:
+# command to install dependencies
+install:
+  - pip install traceback2 aiohttp asyncpg PyYAML flake8 pylint pytz
+  - pip install six nose coverage netaddr python-coveralls aiokafka
+# command to run tests
+script: make test
+after_success:
+  - coveralls
