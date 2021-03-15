@@ -1,5 +1,7 @@
 # web-keepaliver
 
+[![Build Status](https://travis-ci.com/geaaru/web-keepaliver.svg?branch=master)](https://travis-ci.com/geaaru/web-keepaliver)
+
 Web Services monitoring system that generates metrics to Kafka's Brokers.
 
 It supplies two different programs that are configurable through YAML files:
