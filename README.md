@@ -12,7 +12,9 @@ It supplies two different programs that are configurable through YAML files:
     Brokers, parses the messages, and stores in a TimescaleDB. The timescaleDB
     is an extension of the PostgreSQL database.
 
-The stored data are read and displayed from a Grafana dashboard
+The stored data are read and displayed from a Grafana dashboard:
+
+![image](docs/grafana_dashboard.png)
 
 ## Developers stuff
 
