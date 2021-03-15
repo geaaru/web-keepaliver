@@ -250,7 +250,7 @@ class KeepaliverKafkaConsumer(AppSeed,
         )
 
         try:
-            while True and not self.in_shutdown:
+            while not self.in_shutdown:
                 self.logger.debug("Waiting for messages...")
 
                 data = await self.kafka_consumer.getmany(
