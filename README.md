@@ -59,18 +59,10 @@ websites:
     # Define the max connection timeout in seconds.
     request_timeout_sec: 120
 
-    # Define basic authentication
-    # basic_auth:
-    #   user: "xxx"
-    #   pass: "yyy"
-
     resources:
       - name: "homepage"
         url: "https://mottainaici.github.io/lxd-compose-docs/"
         method: GET
-        # Define optional headers map
-        # headers:
-        #   Content-Type: "application/json"
         expected_http_code: 200
         # Optional response check through a regex.
         expected_body_pattern: '.*DANIELE.*'
@@ -78,9 +70,6 @@ websites:
       - name: "documentation"
         url: "https://mottainaici.github.io/lxd-compose-docs/docs"
         method: GET
-        # Define optional headers map
-        # headers:
-        #   Content-Type: "application/json"
         expected_http_code: 200
         # Optional response check through a regex.
         expected_body_pattern: 'lxd-compose'
@@ -88,9 +77,9 @@ websites:
 
 Where a `site` could be defined with:
 
- * *name*: user-friendly name of the site/node to monitoring
- * *topic*: the name of the Kakfa Broker topic to use
- * *verify_ssl*: disable/enable SSL certificate check. Set to `false` for
+ * `name`: user-friendly name of the site/node to monitoring
+ * `topic`: the name of the Kakfa Broker topic to use
+ * `verify_ssl`: disable/enable SSL certificate check. Set to `false` for
    self signed certificates normally.
  * `request_timeout_sec`: define the max connection timeout in seconds.
  * `basic_auth`: this section permit to define a Basic Authentication
@@ -99,15 +88,15 @@ Where a `site` could be defined with:
 
 Every `resource` could be defined with:
 
-  * *name*: user-friendly name of the URI
-  * *url*: the URL to call
-  * *method*: The HTTP method to use. Default is GET.
-  * *headers*: (optional) could be define the map of headers to sent
-  * *expected_http_code*: the expected HTTP Response Code.
+  * `name`: user-friendly name of the URI
+  * `url`: the URL to call
+  * `method`: The HTTP method to use. Default is GET.
+  * `headers`: (optional) could be define the map of headers to sent
+  * `expected_http_code`: the expected HTTP Response Code.
     The default value is 200.
     If the code is not equal then the message sent over Kafka
     will contains the failure status.
-  * *expected_body_pattern*: (optional) used to check
+  * `expected_body_pattern`: (optional) used to check
 
 
 ## Developers stuff
