@@ -427,7 +427,7 @@ Engine: timescaledb#</dia:string>
             <dia:string>#last_update#</dia:string>
           </dia:attribute>
           <dia:attribute name="type">
-            <dia:string>#DATE#</dia:string>
+            <dia:string>#TIMESTAMP#</dia:string>
           </dia:attribute>
           <dia:attribute name="comment">
             <dia:string>##</dia:string>
