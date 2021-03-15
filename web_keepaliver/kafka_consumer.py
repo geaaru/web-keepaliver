@@ -8,6 +8,7 @@ import traceback2
 import uuid
 import json
 import datetime
+import pytz
 
 from sys import exit as start_shuttle
 from concurrent.futures import CancelledError
@@ -134,15 +135,19 @@ class KeepaliverKafkaConsumer(AppSeed,
                     if 'resp_ts' in p:
                         ts = datetime.datetime.fromtimestamp(
                             int(p['resp_ts'])/1000.0,
-                            tz=datetime.timezone.utc,
                         )
                     else:
                         # If resp_ts is not present then
                         # we use the kafka message timestamp.
                         ts = datetime.datetime.fromtimestamp(
                             p.timestamp/1000.0,
-                            tz=datetime.timezone.utc
                         )
+
+                    ts = datetime.datetime(ts.year, ts.month, ts.day,
+                                           hour=ts.hour,
+                                           minute=ts.minute,
+                                           second=ts.second,
+                                           tzinfo=pytz.utc)
 
                     site_probes.append((
                         ts, site,
@@ -160,10 +165,11 @@ class KeepaliverKafkaConsumer(AppSeed,
                         all_events_ok = False
 
                 if event == last_event:
+                    last_update = datetime.datetime.utcnow()
                     # Prepare status entry
                     status = {
                         'site': site,
-                        'last_update': datetime.datetime.utcnow(),
+                        'last_update': last_update,
                         'status': all_events_ok,
                         'n_resources': len(event['probes']),
                         'err_counter': 0 if all_events_ok else False,
