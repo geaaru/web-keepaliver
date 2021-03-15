@@ -6,11 +6,14 @@ import asyncio
 import os
 import traceback2
 import uuid
+import json
+import datetime
 
 from sys import exit as start_shuttle
 from concurrent.futures import CancelledError
 
 from web_keepaliver.common import AppSeed, KafkaClientConfigurator
+from web_keepaliver.db.postgres import PostgresConnector, PostgresDatabase
 
 KEEPALIVER_KAFKA_CONSUMER_CONFIG = '/etc/web-keepaliver/kafka-consumer.yaml'
 KEEPALIVER_KAFKA_CONSUMER_DEF_NAME = 'web-keepaliver-kafka-consumer'
@@ -21,7 +24,9 @@ Web Keepaliver Kafka Consumer.
 """
 
 
-class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
+class KeepaliverKafkaConsumer(AppSeed,
+                              KafkaClientConfigurator,
+                              PostgresConnector):
 
     def __init__(self):
         self.kafka_brokers = []
@@ -38,6 +43,7 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
                          config_default_file=config_def_file,
                          app_description=KEEPALIVER_KAFKA_CONSUMER_DESC)
         KafkaClientConfigurator.__init__(self)
+        PostgresConnector.__init__(self)
 
         # Avoid cancel tasks when kafka consumer is running.
         self._cancel_tasks = False
@@ -51,6 +57,9 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
             dest='kafka_brokers',
             help='Override kafka brokers defined in the configuration file.'
         )
+
+    def get_postgres_conn_options(self):
+        return self.get_config_category('postgres', {})
 
     def get_kafka_configuration(self, producer=True, admin=False):
         opts = self.get_config_category('kafka', {})
@@ -94,9 +103,138 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
         asyncio.set_event_loop(loop=self.loop)
 
         await self._init_consumer()
+        await self.create_pool()
 
     def signal_handler(self, signame):
         self.in_shutdown = True
+
+    async def _process_site_events(self, site, topic, messages):
+        last_event = messages[len(messages)-1]
+        site_probes = []
+        status = {}
+
+        self.logger.info(
+            "[%s] Processing %d events from topic %s.", site,
+            len(messages), topic,
+        )
+
+        try:
+            for event in messages:
+                if 'probes' not in event:
+                    self.logger.warning(
+                        "[%s] Received invalid event without probes from "
+                        "topic %s", site, topic,
+                    )
+                    continue
+
+                probes = event['probes']
+
+                all_events_ok = True
+                for p in probes:
+                    if 'resp_ts' in p:
+                        ts = datetime.datetime.fromtimestamp(
+                            int(p['resp_ts'])/1000.0,
+                            tz=datetime.timezone.utc,
+                        )
+                    else:
+                        # If resp_ts is not present then
+                        # we use the kafka message timestamp.
+                        ts = datetime.datetime.fromtimestamp(
+                            p.timestamp/1000.0,
+                            tz=datetime.timezone.utc
+                        )
+
+                    site_probes.append((
+                        ts, site,
+                        p['resource'],
+                        p['method'],
+                        p['url'],
+                        p['resp_http_code'],
+                        p['resp_time_ms'],
+                        p['expected_http_code'],
+                        p['result'],
+                        p['error_desc'] if 'error_desc' in p else None,
+                    ))
+
+                    if not p['result']:
+                        all_events_ok = False
+
+                if event == last_event:
+                    # Prepare status entry
+                    status = {
+                        'site': site,
+                        'last_update': datetime.datetime.utcnow(),
+                        'status': all_events_ok,
+                        'n_resources': len(event['probes']),
+                        'err_counter': 0 if all_events_ok else False,
+                    }
+        except Exception as exc:  # pylint: disable=broad-except
+            self.logger.error(
+                'Unexpected error or prepare records on db: %s\n%s', exc,
+                '\n'.join(traceback2.format_exc().splitlines())
+                if self.debug
+                else ''
+            )
+
+        con = await self.acquire()
+        try:
+            # Register probes
+            await PostgresDatabase.register_probes(con, site_probes)
+
+            # Update site status
+            await PostgresDatabase.register_site_status(con, status)
+        except Exception as exc:  # pylint: disable=broad-except
+            self.logger.error(
+                'Unexpected error or register records on db: %s\n%s', exc,
+                '\n'.join(traceback2.format_exc().splitlines())
+                if self.debug
+                else ''
+            )
+        finally:
+            await self.release(con)
+
+    async def _parse_topic_messages(self, tp, messages):
+
+        try:
+            site_events_map = {}
+            for message in messages:
+
+                jmsg = json.loads(str(message.value.decode('ascii')))
+
+                self.msgs_counter += 1
+                self.logger.info(
+                    "[%s/%d/%d] [%s] Received message %s",
+                    tp.topic, tp.partition,
+                    message.offset,
+                    str(uuid.UUID(bytes=message.key)),
+                    str(message.value.decode('ascii')) if self.debug
+                    else 'with %d events' % len(jmsg['probes'])
+                )
+
+                # Organize messages for site
+                if jmsg['site'] not in site_events_map:
+                    site_events_map[jmsg['site']] = [jmsg]
+                else:
+                    site_events_map[jmsg['site']].append(jmsg)
+
+            futures = []
+            for site in site_events_map:
+                events = site_events_map[site]
+                futures.append(asyncio.ensure_future(
+                    self._process_site_events(site, tp.topic, events)
+                ))
+
+            await asyncio.gather(
+                *futures,
+                return_exceptions=True
+            )
+        except Exception as exc:  # pylint: disable=broad-except
+            self.logger.error(
+                'Unexpected error or parse topic messages: %s\n%s', exc,
+                '\n'.join(traceback2.format_exc().splitlines())
+                if self.debug
+                else ''
+            )
 
     async def _async_main(self):
         await self._initialize()
@@ -115,16 +253,22 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
                         10000,
                     )
                 )
+                futures = []
                 for tp, messages in data.items():
-                    for message in messages:
-                        self.msgs_counter += 1
-                        self.logger.info(
-                            "[%s/%d/%d] [%s] Received message '%s'",
-                            tp.topic, tp.partition,
-                            message.offset,
-                            str(uuid.UUID(bytes=message.key)),
-                            str(message.value.decode('ascii')),
+                    future = asyncio.ensure_future(
+                        self._parse_topic_messages(
+                            tp, messages,
                         )
+                    )
+                    futures.append(future)
+
+                await asyncio.ensure_future(
+                    asyncio.gather(
+                        *futures,
+                        return_exceptions=True,
+                        loop=self.loop,
+                    )
+                )
 
         except CancelledError:
             pass
@@ -136,6 +280,11 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
         # Error: Commit offset before unsubscribe to avoid
         # UnknownMemberIdError
         # self.kafka_consumer.unsubscribe()
+
+    async def _cleanup(self):
+        if self.kafka_consumer:
+            await self.kafka_consumer.stop()
+        await self.postgres_cleanup()
 
     def main(self, parse_cmdline_opts=True):
         ans = 0
@@ -163,7 +312,7 @@ class KeepaliverKafkaConsumer(AppSeed, KafkaClientConfigurator):
             ans = 1
 
         # Running closing operation of the producer
-        self.loop.run_until_complete(self.kafka_consumer.stop())
+        self.loop.run_until_complete(self._cleanup())
 
         self.logger.info(
             "Instance %s stopped.", self.name

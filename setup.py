@@ -19,6 +19,7 @@ setup(
             'aiokafka',
             'traceback2',
             'aiohttp',
+            'asyncpg',
         ],
         entry_points={
             'console_scripts': [

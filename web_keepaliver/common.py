@@ -137,6 +137,9 @@ class AppSeed(metaclass=ABCMeta):
     def get_parser(self):
         return self.parser
 
+    def get_logger(self) -> logging.Logger:
+        return self.logger
+
     def _load_config_file(self, config_file):
         """
 

@@ -7,7 +7,9 @@ LOGGER_NAME = 'web-keepaliver'
 __all__ = [
     '__version__',
     'VERSION',
-    'LOGGER_NAME'
+    'LOGGER_NAME',
+    'kafka_consumer',
+    'kafka_producer'
 ]
 
 # vim: ts=4 sw=4 expandtab

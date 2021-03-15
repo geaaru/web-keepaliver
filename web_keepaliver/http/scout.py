@@ -103,18 +103,22 @@ class HttpProbeResult:
                  result: bool,
                  error_desc: str = None,
                  resp_time_ms: int = -1,
-                 site: HttpWebSite = None):
+                 site: HttpWebSite = None,
+                 resp_ts: str = None):
         self.resource = resource
         self.site = site
         self.resp_http_code = resp_http_code
         self.result = result
         self.error_desc = error_desc
         self.resp_time_ms = resp_time_ms
+        self.resp_ts = resp_ts
 
     def get_resp_http_code(self):
         return self.resp_http_code
 
     def pack(self):
+        if self.resp_ts is None:
+            self.resp_ts = '%d' % datetime.utcnow().timestamp() * 1000
         ans = {
             'site': self.site.get_name() if self.site is not None else "",
             'resource': self.resource.get_name(),
@@ -122,9 +126,9 @@ class HttpProbeResult:
             'method': self.resource.get_method(),
             'resp_http_code': self.resp_http_code,
             'resp_time_ms': self.resp_time_ms,
+            'resp_ts': self.resp_ts,
             'expected_http_code': self.resource.expected_http_code,
             'result': self.result,
-
         }
 
         if self.error_desc is not None and len(self.error_desc) > 0:
@@ -221,6 +225,7 @@ class HttpScout:
         """
         result = False
         resp_http_code = 0
+        resp_ts = None
         ms = -1
         error_desc = None
         try:
@@ -231,6 +236,7 @@ class HttpScout:
                 (end_time - start_time).microseconds / 1000,
                 2
             )
+            resp_ts = '%d' % (round(end_time.timestamp() * 1000))
             # NOTE: ms isn't accurate because depends on the number
             #       of concurrency tasks.
 
@@ -261,11 +267,14 @@ class HttpScout:
                 resource.name, resource.url, resource.get_method(), exc,
             )
             error_desc = '%s' % exc
+            if resp_ts is None:
+                resp_ts = '%d' % (datetime.utcnow().timestamp() * 1000)
 
         ans = HttpProbeResult(resource, resp_http_code, result,
                               site=site,
                               error_desc=error_desc,
-                              resp_time_ms=ms)
+                              resp_time_ms=ms,
+                              resp_ts=resp_ts)
 
         return ans
 

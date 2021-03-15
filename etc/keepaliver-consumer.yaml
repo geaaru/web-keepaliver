@@ -12,3 +12,27 @@ kafka:
   bootstrap_servers:
     - "kafka1.mottainai.local:9092"
   group_id: "web-keepaliver-consumers"
+
+postgres:
+  # Database host. Configurable also with the
+  # environment variable PGHOST
+  host: "web-keepaliver-db1.mottainai.local"
+
+  # Definie port. Default 5432. Configurable also with
+  # the variable PGPORT
+  # port: 5432
+
+  # Database user. Configurable also with the variable
+  # PGUSER
+  user: "keepaliver"
+
+  # Database used. Configurable also with the variable
+  # PGDATABASE
+  database: "keepaliver"
+
+  # Password of the connection. Configurable also with
+  # the variable PGPASSWORD.
+  password: "cvhyBiv"
+
+  # Connection timeout in seconds. (float format).
+  timeout: 15.0
