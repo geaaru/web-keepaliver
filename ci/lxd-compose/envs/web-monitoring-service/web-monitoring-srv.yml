@@ -1,0 +1,20 @@
+version: "1"
+
+template_engine:
+  engine: "mottainai"
+
+projects:
+  - name: "web-monitoring"
+    description: |
+      Web monitoring Service integrated with Kakfa.
+
+    include_env_files:
+      - vars/main.yml
+      - vars/kafka.yml
+      - vars/postgresql.yml
+
+    include_groups_files:
+      - groups/postgresql.yml
+      - groups/kafka.yml
+      - groups/monitor.yml
+      - groups/grafana.yml

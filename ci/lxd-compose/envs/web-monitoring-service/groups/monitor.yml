@@ -1,0 +1,51 @@
+name: "web-monitors"
+description: "Web Monitor Services"
+
+connection: "local"
+# Define the list of LXD Profile to use
+# for create the containers
+common_profiles:
+  - sdpool
+  - net-mottainai0
+
+# Create the environment container as ephemeral or not.
+ephemeral: true
+
+hooks:
+  - event: post-node-creation
+    commands:
+      - sleep 1
+      - apt-get update && apt-get upgrade -y
+      - apt-get install -y jq
+      - apt-get install -y $(echo ${packages} | jq '.[]' -r)
+      - apt-get clean
+      - |
+        wget -q -O /usr/bin/yq \
+        https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64
+      - chmod a+x /usr/bin/yq
+
+    # Install luet and database-release-manager tool
+  - event: post-node-creation
+    commands:
+      - curl https://get.mocaccino.org/luet/get_luet_root.sh | sh
+      - luet install -y repository/mocaccino-extra repository/mocaccino-os-commons-stable
+      - luet install -y $(echo ${monitor_luet_packages} | jq '.[]' -r)
+      - luet cleanup
+
+  # We haven't the package available. We use the git repo.
+  - event: post-node-creation
+    flags:
+      - git_clone
+    commands:
+      - git clone ${git_repo} /web-keepaliver
+
+  - event: post-node-sync
+    flags:
+      - upgrade
+    commands:
+      - apt-get update && apt-get upgrade -y && apt-get clean
+
+nodes:
+  - name: web-mon1
+    image_source: "ubuntu/20.10"
+    image_remote_server: "images"

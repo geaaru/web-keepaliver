@@ -1,0 +1,47 @@
+envs:
+
+  git_repo: https://github.com/geaaru/web-keepaliver.git
+
+  service_domain: "mottainai.local"
+  yq_version: "3.4.1"
+  kafka_version: "2.7.0"
+  scala_version: "2.13"
+
+  # Sabayon envs
+  ACCEPT_LICENSE: "*"
+
+  # Monitor node packages
+  packages:
+    - wget
+    - curl
+    - git
+    # install psql client
+    - postgresql-client-12
+    - python3-kafka
+    - python3-aiohttp
+    - python3-asyncpg
+    # used by database-release-manager
+    - sqlite3
+  pip_packages:
+    - aiokafka
+  monitor_luet_packages:
+    - database/database-release-manager
+
+  grafana_packages:
+    - grafana
+    - net-tools
+
+  # Kafka nodes packages
+  kafka_packages:
+    - dev-java/openjdk-bin
+
+  # Database node packages
+  timescaledb_repos:
+    # We need ppa for timescaledb-tools not available in ppa2
+    - ppa:timescale/timescaledb-ppa
+    - ppa:timescale/timescaledb-ppa2
+
+  postgresql_packages:
+    - timescaledb-2-postgresql-12
+    - timescaledb-tools
+    - net-tools

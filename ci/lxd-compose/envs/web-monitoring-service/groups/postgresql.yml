@@ -1,0 +1,55 @@
+name: "postgresql-standalone"
+description: "Standalone PostgreSQL Database Service"
+
+connection: "local"
+
+common_profiles:
+  - sdpool
+  - net-mottainai0
+
+ephemeral: true
+
+hooks:
+  - event: post-node-creation
+    commands:
+      - sleep 1
+      - apt-get update && apt-get upgrade -y
+      - apt-get install -y jq wget software-properties-common
+      - for i in $(echo ${timescaledb_repos} | jq '.[]' -r); do add-apt-repository -y $i ; done && apt-get update
+      - apt-get install -y $(echo ${postgresql_packages} | jq '.[]' -r)
+      - |
+        wget -q -O /usr/bin/yq \
+        https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64
+      - chmod a+x /usr/bin/yq
+      - apt-get clean
+
+  - event: post-node-creation
+    commands:
+      - timescaledb-tune --quiet --yes
+
+  # Create database users
+  - event: post-node-creation
+    commands:
+      - echo "CREATE USER ${postgresql_username} WITH PASSWORD '${postgresql_pass}'" | su - postgres -c psql
+      - echo "CREATE DATABASE ${postgresql_database} WITH ENCODING='UTF-8' OWNER='${postgresql_username}'" | su - postgres -c psql
+      - echo "CREATE SCHEMA ${postgresql_schema} AUTHORIZATION ${postgresql_username}" | su - postgres -c "psql -d ${postgresql_database}"
+      - echo "ALTER USER ${postgresql_username} SET search_path TO ${postgresql_schema}, public" | su - postgres -c "psql -d ${postgresql_database}"
+      - echo "GRANT ALL ON SCHEMA ${postgresql_schema} TO ${postgresql_username}" | su - postgres -c "psql -d ${postgresql_database}"
+      - echo "ALTER DATABASE ${postgresql_database} SET search_path TO ${postgresql_schema}, public" | su - postgres -c "psql -d ${postgresql_database}"
+      # Enable binding on all interfaces
+      - sed -e "s|#listen_addresses.*|listen_addresses = '*'|g" -i /etc/postgresql/12/main/postgresql.conf
+      # Enable access from every address. Not for production.
+      - |
+        echo "host    all             all             0.0.0.0/0               md5" >> \
+        /etc/postgresql/12/main/pg_hba.conf
+      - |
+        echo "host    all             all             ::/0               md5" >> \
+        /etc/postgresql/12/main/pg_hba.conf
+      - systemctl restart postgresql
+      # Enable timescaledb extension
+      - echo "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;" | su - postgres -c "psql -d ${postgresql_database}"
+
+nodes:
+- name: web-keepaliver-db1
+  image_source: "ubuntu/18.04"
+  image_remote_server: "images"

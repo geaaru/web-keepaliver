@@ -1,0 +1,6 @@
+envs:
+
+  postgresql_database: "keepaliver"
+  postgresql_username: "keepaliver"
+  postgresql_schema: "keepaliver"
+  postgresql_pass: "cvhyBiv"
