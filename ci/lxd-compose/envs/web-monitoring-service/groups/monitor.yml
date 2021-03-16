@@ -14,8 +14,7 @@ ephemeral: true
 hooks:
   - event: post-node-creation
     commands:
-      - sleep 1
-      - apt-get update && apt-get upgrade -y
+      - sleep 1 && apt-get update && apt-get upgrade -y
       - apt-get install -y jq
       - apt-get install -y $(echo ${packages} | jq '.[]' -r)
       - apt-get clean
@@ -44,6 +43,33 @@ hooks:
       - upgrade
     commands:
       - apt-get update && apt-get upgrade -y && apt-get clean
+      - luet upgrade && luet cleanup
+
+  - event: post-node-sync
+    flags:
+      - update_keepaliver
+    commands:
+      - >-
+        cd /web-keepaliver && python3 setup.py install
+        --prefix=/usr --install-lib=/usr/lib/python3.8/site-packages/ &&
+        python3 setup.py  install_lib -d /usr/lib/python3.8/site-packages/
+      # Copy systemd files
+      - cd /web-keepaliver && cp systemd/web-* /etc/systemd/system/
+      - systemctl daemon-reload
+
+  - event: post-node-sync
+    flags:
+      - update_config
+    commands:
+      - >-
+        echo "${web_keepaliver_producer_config}" | yq r -P - >
+        /etc/keepaliver-producer.yaml
+      - >-
+        echo "${web_keepaliver_consumer_config}" | yq r -P - >
+        /etc/keepaliver-consumer.yaml
+      - systemctl enable web-keepaliver-producer web-keepaliver-consumer
+      - systemctl restart web-keepaliver-producer
+      - systemctl restart web-keepaliver-consumer
 
 nodes:
   - name: web-mon1

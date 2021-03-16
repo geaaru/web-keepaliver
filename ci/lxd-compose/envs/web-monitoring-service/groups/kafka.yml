@@ -1,4 +1,4 @@
-name: "kakfa-standalone"
+name: "kafka-standalone"
 description: "Standalone Kafka Service"
 
 connection: "local"
@@ -14,9 +14,10 @@ hooks:
     commands:
       - sleep 1
       - equo repo mirrorsort sabayonlinux.org
-      - equo update && equo upgrade
-      - equo i app-misc/jq
-      - equo i $(echo ${kafka_packages} | jq '.[]' -r)
+      #      - equo update && equo upgrade
+      - equo update
+      - equo i app-misc/jq --relaxed
+      - equo i --relaxed $(echo ${kafka_packages} | jq '.[]' -r)
       - equo cleanup
 
       # Install kafka package
@@ -28,21 +29,6 @@ hooks:
         rm ${tarball} &&
         ln -s /opt/kafka_${scala_version}-${kafka_version} /opt/kafka
 
-  - event: post-node-creation
-    commands:
-      - systemctl daemon-reload
-      # Update config
-      - echo "${zookeeper_properties}" > /opt/kafka/zookeeper.properties
-      - systemctl restart kafka-zookeeper
-      - systemctl restart kafka
-      # Create topics
-      - >-
-        source /etc/profile &&
-        cd /opt/kafka &&
-        for i in $(echo ${kafka_topics}} | jq '.[]' -r); do
-        ./bin/kafka-topics.sh --create --topic $i --bootstrap-server localhost:9092 ;
-        done
-
   - event: post-node-sync
     flags:
       - update_config
@@ -51,12 +37,27 @@ hooks:
       # Update config
       - echo "${zookeeper_properties}" > /opt/kafka/zookeeper.properties
       - systemctl restart kafka-zookeeper
+      - sleep 5
       - systemctl restart kafka
+      - sleep 5
+      # TODO: - the creation of the topics will be done by the kafka-admin module.
+      #       - enable both localhost and service port.
+      - >-
+        source /etc/profile &&
+        cd /opt/kafka &&
+        if [ ! -e .initial_setup ] ; then
+        for i in $(echo ${kafka_topics} | jq '.[]' -r); do
+        ./bin/kafka-topics.sh --create --topic $i
+        --bootstrap-server ${node_name}.${service_domain}:9092 ;
+        done ;
+        touch .initial_setup ;
+        fi
 
 # ./bin/kafka-topics.sh --create --topic web-keepaliver --bootstrap-server localhost:9092
 nodes:
 - name: kafka1
-  image_source: "sabayon"
+  #  image_source: "sabayon"
+  image_source: "b800e3da8605"
   image_remote_server: "images"
 
   labels:

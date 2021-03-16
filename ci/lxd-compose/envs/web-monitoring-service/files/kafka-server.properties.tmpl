@@ -11,13 +11,15 @@ broker.id={{ .broker_id }}
 #     listeners = listener_name://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
-#listeners=PLAINTEXT://:9092
+listeners=PLAINTEXT://{{ .node_name }}.{{ .service_domain }}:9092
+
 
 # Hostname and port the broker will advertise to producers and consumers. If not set, 
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
 # returned from java.net.InetAddress.getCanonicalHostName().
 #advertised.listeners=PLAINTEXT://your.host.name:9092
 
+advertized.listeners = PLAINTEXT://{{ .node_name }}.{{ .service_domain }}:9092
 advertized.host.name = {{ .node_name }}.{{ .service_domain }}:9092
 
 # Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details

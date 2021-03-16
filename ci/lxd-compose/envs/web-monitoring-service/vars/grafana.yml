@@ -1,0 +1,35 @@
+envs:
+  grafana_admin_pass: "grafana"
+
+  grafana_dashboards_providers:
+    apiVersion: 1
+    providers:
+     - name: 'keepaliver'
+       orgId: 1
+       folder: ''
+       folderUid: ''
+       disableDeletion: true
+       editable: true
+       allowUiUpdates: false
+       type: file
+       options:
+         path: /var/lib/grafana/dashboards
+
+  grafana_datastores:
+    apiVersion: 1
+    datasources:
+    - name: keepaliver-postgresql
+      type: "postgres"
+      access: proxy
+      isDefault: true
+      editable: false
+      # connection_string": ""
+      url: "web-keepaliver-db1.mottainai.local:5432"
+      database: "keepaliver"
+      user: "keepaliver"
+      secureJsonData:
+        password: "cvhyBiv"
+      jsonData:
+        postgresVersion: 1200
+        timescaledb: true
+        sslmode: "disable"

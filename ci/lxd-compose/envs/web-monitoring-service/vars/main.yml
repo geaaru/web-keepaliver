@@ -20,8 +20,11 @@ envs:
     - python3-kafka
     - python3-aiohttp
     - python3-asyncpg
+    - python3-six
+    - pip
     # used by database-release-manager
     - sqlite3
+    - tz-converter
   pip_packages:
     - aiokafka
   monitor_luet_packages:
@@ -34,6 +37,7 @@ envs:
   # Kafka nodes packages
   kafka_packages:
     - dev-java/openjdk-bin
+    - vim
 
   # Database node packages
   timescaledb_repos:
@@ -45,3 +49,54 @@ envs:
     - timescaledb-2-postgresql-12
     - timescaledb-tools
     - net-tools
+
+  web_keepaliver_producer_config:
+    probe_interval_sec: 5
+    kafka:
+      bootstrap_servers:
+        - "kafka1.mottainai.local:9092"
+      enable_idempotence: true
+    limit_sim_conn: 3
+
+    websites:
+      - name: "google.it"
+        topic: "web-keepaliver"
+        verify_ssl: true
+        request_timeout_sec: 120
+        resources:
+          - name: "google-homepage"
+            url: "https://www.google.it"
+            method: GET
+            expected_http_code: 200
+
+      - name: "lxd-compose"
+        topic: "web-keepaliver"
+        verify_ssl: true
+        request_timeout_sec: 120
+
+        resources:
+          - name: "homepage"
+            url: "https://mottainaici.github.io/lxd-compose-docs/"
+            method: GET
+            expected_http_code: 200
+            expected_body_pattern: '.*DANIELE.*'
+
+          - name: "documentation"
+            url: "https://mottainaici.github.io/lxd-compose-docs/docs"
+            method: GET
+            expected_http_code: 200
+            expected_body_pattern: 'lxd-compose'
+
+  web_keepaliver_consumer_config:
+    timeout_waiting_data: 10000
+    subscription_regex: "^web-keepaliver.*"
+    kafka:
+      bootstrap_servers:
+        - "kafka1.mottainai.local:9092"
+      group_id: "web-keepaliver-consumers"
+    postgres:
+      host: "web-keepaliver-db1.mottainai.local"
+      user: "keepaliver"
+      database: "keepaliver"
+      password: "cvhyBiv"
+      timeout: 15.0

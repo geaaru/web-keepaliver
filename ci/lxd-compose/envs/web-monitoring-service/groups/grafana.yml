@@ -1,6 +1,5 @@
 name: "grafana"
-description: "Grafana Service"
-
+description: "Keepaliver Grafana Service"
 connection: "local"
 
 common_profiles:
@@ -24,9 +23,32 @@ hooks:
       - chmod a+x /usr/bin/yq
       - apt-get clean
       - systemctl enable --now grafana-server
+      - systemctl start grafana-server
+      - grafana-cli plugins install snuids-trafficlights-panel
+      - grafana-cli admin reset-admin-password ${grafana_admin_pass}
+      - mkdir -p /var/lib/grafana/dashboards
+      - systemctl restart grafana-server
+
+  - event: post-node-sync
+    flags:
+      - update_config
+    commands:
+      # Update grafana config
+      - echo "${grafana_dashboards_providers}" | yq r -P -
+      - |
+        echo "${grafana_dashboards_providers}" | yq r -P - > \
+        /etc/grafana/provisioning/dashboards/keepaliver.yaml
+      - |
+        echo "${grafana_datastores}" | yq r -P - > \
+        /etc/grafana/provisioning/datasources/keepaliver.yaml
+      - systemctl restart grafana-server
 
 nodes:
 - name: web-keepaliver-grafana1
   image_source: "ubuntu/20.10"
   image_remote_server: "images"
 
+  source_dir: "../../../../grafana"
+  sync_resources:
+    - source: Keepaliver-1615896552135.json
+      dst: /var/lib/grafana/dashboards/
