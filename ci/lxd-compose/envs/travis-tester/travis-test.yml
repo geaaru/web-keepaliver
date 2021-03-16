@@ -29,9 +29,9 @@ projects:
               - apt-get install -y python3-traceback2 tz-converter python3-pytest
               - apt-get install -y python3-flake8 pylint flake8 python3-pip git
               - apt-get clean
-              - pip3 install six nose coverage netaddr python-coveralls aiokafka
+              - pip3 install six nose coverage netaddr coveralls aiokafka
               - git clone https://github.com/geaaru/web-keepaliver.git /web-keepaliver
-              - cd /web-keepaliver && make test
+              - cd /web-keepaliver && make test coverage
               # Delete the container. All is ok.
               - poweroff
 
