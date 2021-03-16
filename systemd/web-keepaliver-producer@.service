@@ -1,6 +1,6 @@
 [Unit]
 Description=Web Keepaliver Producer
-After=syslog.target network.target memcached.service
+After=syslog.target network.target
 
 [Service]
 Environment=KEEPALIVER_KAFKA_PRODUCER_CONFIG=/etc/%i.yaml

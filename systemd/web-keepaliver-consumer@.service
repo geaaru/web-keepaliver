@@ -1,6 +1,6 @@
 [Unit]
 Description=Web Keepaliver Consumer
-After=syslog.target network.target memcached.service
+After=syslog.target network.target
 
 [Service]
 Environment=KEEPALIVER_KAFKA_CONSUMER_CONFIG=/etc/%i.yaml
