@@ -1,8 +1,6 @@
 # web-keepaliver
 
-[![Build Status](https://travis-ci.com/geaaru/web-keepaliver.svg?branch=master)](https://travis-ci.com/geaaru/web-keepaliver)
-
-[![Coverage Status](https://coveralls.io/repos/github/geaaru/web-keepaliver/badge.svg)](https://coveralls.io/github/geaaru/web-keepaliver)
+[![Build Status](https://travis-ci.com/geaaru/web-keepaliver.svg?branch=master)](https://travis-ci.com/geaaru/web-keepaliver) [![Coverage Status](https://coveralls.io/repos/github/geaaru/web-keepaliver/badge.svg)](https://coveralls.io/github/geaaru/web-keepaliver)
 
 Web Services monitoring system that generates metrics to Kafka's Brokers.
 
