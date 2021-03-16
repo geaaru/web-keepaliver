@@ -93,6 +93,13 @@ class KeepaliverKafkaConsumer(AppSeed,
         self.kafka_consumer.subscribe(pattern=self.get_config_param(
             None, 'subscription_regex', "web-keepaliver"
         ))
+        # NOTE: when the group coardinator is not yet present in the
+        # kafka broker aiokafka library wrote this error:
+        # Group Coordinator Request failed:
+        # [Error 15] CoordinatorNotAvailableError
+        #
+        # This error is automatically handled by the library with
+        # retries and after 2/3 seconds all works correctly.
 
     async def _initialize(self):
         self.name = self.get_config_param(
