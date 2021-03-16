@@ -1,0 +1,12 @@
+[Unit]
+Description=Web Keepaliver Producer
+After=syslog.target network.target
+ConditionPathExists=/etc/keepaliver-producer.yaml
+
+[Service]
+Environment=KEEPALIVER_KAFKA_PRODUCER_CONFIG=/etc/keepaliver-producer.yaml
+ExecStart=/usr/bin/web-keepaliver-producer --verbose
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

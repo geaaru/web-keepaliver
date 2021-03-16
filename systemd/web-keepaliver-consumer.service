@@ -1,0 +1,12 @@
+[Unit]
+Description=Web Keepaliver Consumer
+After=syslog.target network.target
+ConditionPathExists=/etc/keepaliver-consumer.yaml
+
+[Service]
+Environment=KEEPALIVER_KAFKA_CONSUMER_CONFIG=/etc/keepaliver-consumer.yaml
+ExecStart=/usr/bin/web-keepaliver-consumer --verbose
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

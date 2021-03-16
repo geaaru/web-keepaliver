@@ -1,0 +1,11 @@
+[Unit]
+Description=Web Keepaliver Consumer
+After=syslog.target network.target memcached.service
+
+[Service]
+Environment=KEEPALIVER_KAFKA_CONSUMER_CONFIG=/etc/%i.yaml
+ExecStart=/usr/bin/web-keepaliver-consumer --verbose
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
