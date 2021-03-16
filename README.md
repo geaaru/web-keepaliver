@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.com/geaaru/web-keepaliver.svg?branch=master)](https://travis-ci.com/geaaru/web-keepaliver)
 
+[![Coverage Status](https://coveralls.io/repos/github/geaaru/web-keepaliver/badge.svg)](https://coveralls.io/github/geaaru/web-keepaliver)
+
 Web Services monitoring system that generates metrics to Kafka's Brokers.
 
 It supplies two different programs that are configurable through YAML files:
@@ -145,6 +147,17 @@ $>
 
 ### LXD Compose
 
+To see all available projects.
+
+```shell
+$> cd ci/lxd-compose
+$> lxd-compose project list
+- web-monitoring
+- travis-test
+```
+
+#### Project web-monitoring
+
 To simplify the developer life we use [lxd-compose](https://mottainaici.github.io/lxd-compose-docs/)
 to setup the complete services chain locally that is needed to test the application.
 
@@ -156,6 +169,21 @@ In particular, the service is managed by these containers:
   - one container/service where are executed the **web-keepaliver-producer** and
     **web-keepaliver-consumer** tools.
   - one container/service with [Grafana](https://grafana.com/)
+
+#### Project travis-test
+
+A fast way to test the travis environment with the system python3 version (Python 3.8).
+
+Run the test
+```shell
+$> cd ci/lxd-compose && lxd-compose apply travis-test
+```
+
+On success the container is automatically destroyed else it's needed run the command:
+
+```shell
+$> cd ci/lxd-compose && lxd-compose destroy travis-test
+```
 
 ### Indentation & Code Style
 
