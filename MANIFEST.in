@@ -6,4 +6,5 @@ exclude etc/__pycache__/*.pyc
 exclude dbrm
 exclude grafana
 exclude docs
+exclude ci
 graft   systemd
