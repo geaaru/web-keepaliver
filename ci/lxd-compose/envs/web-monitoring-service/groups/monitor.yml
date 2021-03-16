@@ -51,8 +51,8 @@ hooks:
     commands:
       - >-
         cd /web-keepaliver && python3 setup.py install
-        --prefix=/usr --install-lib=/usr/lib/python3.8/site-packages/ &&
-        python3 setup.py  install_lib -d /usr/lib/python3.8/site-packages/
+        --prefix=/usr --install-lib=/usr/lib/python3/dist-packages/ &&
+        python3 setup.py  install_lib -d /usr/lib/python3/dist-packages/
       # Copy systemd files
       - cd /web-keepaliver && cp systemd/web-* /etc/systemd/system/
       - systemctl daemon-reload
@@ -70,6 +70,8 @@ hooks:
       - systemctl enable web-keepaliver-producer web-keepaliver-consumer
       - systemctl restart web-keepaliver-producer
       - systemctl restart web-keepaliver-consumer
+      - systemctl status web-keepaliver-consumer
+      - systemctl status web-keepaliver-producer
 
 nodes:
   - name: web-mon1
