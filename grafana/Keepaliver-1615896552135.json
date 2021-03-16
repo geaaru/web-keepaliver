@@ -1,4 +1,40 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_KEEPALIVER-POSTGRESQL",
+      "label": "keepaliver-postgresql",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "postgres",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "7.4.3"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "snuids-trafficlights-panel",
+      "name": "Traffic Lights",
+      "version": "1.4.5"
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -7,7 +43,10 @@
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
         "name": "Annotations & Alerts",
+        "rawQuery": "SELECT\n  extract(epoch from time_column) AS time,\n  text_column as text,\n  tags_column as tags\nFROM\n  metric_table\nWHERE\n  $__timeFilter(time_column)\n",
+        "showIn": 0,
         "type": "dashboard"
       }
     ]
@@ -15,12 +54,12 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
   "panels": [
     {
       "bgColor": null,
-      "datasource": null,
+      "datasource": "keepaliver-postgresql",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -118,7 +157,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": null,
+      "datasource": "keepaliver-postgresql",
       "fieldConfig": {
         "defaults": {
           "custom": {},
@@ -245,7 +284,7 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "Keepalive",
-  "uid": "p2H_Wj8Mz",
-  "version": 5
+  "title": "Keepaliver",
+  "uid": "p2H_Wj8Mz2",
+  "version": 3
 }
