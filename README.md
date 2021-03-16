@@ -168,6 +168,11 @@ In particular, the service is managed by these containers:
     **web-keepaliver-consumer** tools.
   - one container/service with [Grafana](https://grafana.com/)
 
+The setup of the environment could take minutes because the packages are installed
+after the container creation. Could be faster if there are pre-built images and exposed
+by an LXD Simplestreams server
+(See [simplestreams-builder](https://github.com/MottainaiCI/simplestreams-builder).
+
 #### Project travis-test
 
 A fast way to test the travis environment with the system python3 version (Python 3.8).
