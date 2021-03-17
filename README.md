@@ -173,6 +173,8 @@ after the container creation. Could be faster if there are pre-built images and 
 by an LXD Simplestreams server
 (See [simplestreams-builder](https://github.com/MottainaiCI/simplestreams-builder).
 
+[![asciicast](https://asciinema.org/a/399808.svg)](https://asciinema.org/a/399808)
+
 #### Project travis-test
 
 A fast way to test the travis environment with the system python3 version (Python 3.8).
