@@ -102,7 +102,7 @@ class KeepaliverKafkaAdmin(AppSeed, KafkaClientConfigurator):
 
         asyncio.set_event_loop(loop=self.loop)
         self.kafka_admin = self.create_kafka_admin()
-        self.kafka_consumer = self.create_kafka_consumer()
+        self.kafka_consumer = self.create_sync_kafka_consumer()
 
         brokers = 'localhost:9092'
         if len(self.kafka_brokers) > 0:
