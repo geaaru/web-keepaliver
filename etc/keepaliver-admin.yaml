@@ -1,0 +1,7 @@
+# Configuration file for the web-keepaliver-consumer
+
+# Define the list of kakfa broker. Default broker is localhost:9092
+kafka:
+  bootstrap_servers:
+    - "kafka1.mottainai.local:9092"
+
