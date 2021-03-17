@@ -38,6 +38,19 @@ hooks:
     commands:
       - git clone ${git_repo} /web-keepaliver
 
+  # Initialize postgres database
+  - event: post-node-creation
+    flags:
+      - initialize_db
+    commands:
+      - >-
+        cd /web-keepaliver/dbrm &&
+        sed -e "s|^POSTGRESQL_PWD.*|POSTGRESQL_PWD=\"${postgresql_pass}\"|g"
+        -i dbrm-profiles/dev.conf &&
+        dbrm dbm upgrade &&
+        dbrm psql compile --file creation_scripts/initial_ddl.sql &&
+        dbrm psql show --tables
+
   - event: post-node-sync
     flags:
       - upgrade

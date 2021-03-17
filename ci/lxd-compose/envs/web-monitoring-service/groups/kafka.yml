@@ -56,8 +56,7 @@ hooks:
 # ./bin/kafka-topics.sh --create --topic web-keepaliver --bootstrap-server localhost:9092
 nodes:
 - name: kafka1
-  #  image_source: "sabayon"
-  image_source: "b800e3da8605"
+  image_source: "sabayon"
   image_remote_server: "images"
 
   labels:
